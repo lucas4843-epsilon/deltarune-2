@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dark World Online</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#05000a;
+    color:white;
+    font-family:monospace;
+    overflow:hidden;
+}
+
+/* ================= PANTALLAS ================= */
+
+.screen{
+    display:none;
+    width:100vw;
+    height:100vh;
+}
+
+.screen.active{
+    display:flex;
+}
+
+/* ================= SELECTOR ================= */
+
+#selector{
+    justify-content:center;
+    align-items:center;
+    background:
+        radial-gradient(circle at center,#321052,#08000e 60%,#000);
+    overflow:auto;
+    padding:30px 10px;
+}
+
+.selector-box{
+    width:min(1100px,96vw);
+    max-height:94vh;
+    overflow:auto;
+    padding:30px;
+    background:#0b0014;
+    border:3px solid #8b3dff;
+    box-shadow:0 0 35px #6a00ff;
+}
+
+h1{
+    text-align:center;
+    font-size:clamp(30px,6vw,60px);
+    color:#d29aff;
+    margin:5px;
+    text-shadow:0 0 15px #8b3dff;
+}
+
+.subtitle{
+    text-align:center;
+    color:#aaa;
+}
+
+.category{
+    color:#c77dff;
+    border-bottom:1px solid #552080;
+    padding-bottom:8px;
+    margin-top:30px;
+}
+
+.characters{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(125px,1fr));
+    gap:12px;
+}
+
+.character{
+    min-height:150px;
+    background:#140020;
+    border:2px solid #38204a;
+    padding:12px;
+    text-align:center;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.character:hover{
+    border-color:#b86cff;
+    transform:translateY(-3px);
+}
+
+.character.selected{
+    border-color:#fff;
+    background:#28103d;
+    box-shadow:0 0 18px #9c42ff;
+}
+
+.face{
+    width:55px;
+    height:65px;
+    margin:0 auto 10px;
+    border:4px solid #111;
+    position:relative;
+    image-rendering:pixelated;
+}
+
+/* ================= SPRITES PLACEHOLDER ================= */
+
+.kris{background:linear-gradient(#314b9b 0 45%,#151c5c 45% 75%,#111 75%)}
+.susie{background:linear-gradient(#74249b 0 45%,#4a1767 45% 75%,#111 75%)}
+.ralsei{background:linear-gradient(#8eeaff 0 40%,#3285ad 40% 75%,#222 75%)}
+.noelle{background:linear-gradient(#fff 0 35%,#e9bd6b 35% 70%,#842 70%)}
+.berdly{background:linear-gradient(#5a9cff 0 35%,#174b9c 35% 75%,#222 75%)}
+.catti{background:linear-gradient(#555 0 40%,#292929 40% 75%,#111 75%)}
+.jockington{background:linear-gradient(#5ee8a0 0 40%,#168a54 40% 75%,#111 75%)}
+.temmie{background:linear-gradient(#fff 0 40%,#aaa 40% 75%,#333 75%)}
+.toriel{background:linear-gradient(#f4d6c5 0 40%,#7d315d 40% 75%,#301 75%)}
+.asgore{background:linear-gradient(#d88d45 0 40%,#813f20 40% 75%,#222 75%)}
+.asriel{background:linear-gradient(#eee 0 40%,#888 40% 75%,#222 75%)}
+
+.lancer{background:linear-gradient(#27347c 0 40%,#151c4d 40% 75%,#111 75%)}
+.seam{background:linear-gradient(#7b62a8 0 40%,#44315e 40% 75%,#111 75%)}
+.jevil{background:linear-gradient(#6634b9 0 40%,#30205f 40% 75%,#111 75%)}
+.king{background:linear-gradient(#222 0 40%,#471331 40% 75%,#111 75%)}
+.queen{background:linear-gradient(#b9c8e8 0 40%,#453b9a 40% 75%,#111 75%)}
+.spamton{background:linear-gradient(#ddd 0 40%,#333 40% 75%,#111 75%)}
+.rouxls{background:linear-gradient(#2877ba 0 40%,#17466e 40% 75%,#111 75%)}
+.swatch{background:linear-gradient(#222 0 40%,#111 40% 75%,#000 75%)}
+.tasque{background:linear-gradient(#e8c8ff 0 40%,#864caf 40% 75%,#111 75%)}
+.sweet{background:linear-gradient(#e74b69 0 40%,#92263d 40% 75%,#111 75%)}
+.capn{background:linear-gradient(#48c8ed 0 40%,#26718c 40% 75%,#111 75%)}
+.cakes{background:linear-gradient(#ffb5d9 0 40%,#a44878 40% 75%,#111 75%)}
+
+.character-name{
+    font-size:14px;
+    font-weight:bold;
+}
+
+.character-type{
+    font-size:11px;
+    color:#888;
+    margin-top:6px;
+}
+
+#start{
+    display:block;
+    margin:30px auto 5px;
+    padding:15px 45px;
+    color:white;
+    background:#6a00ff;
+    border:2px solid #d29aff;
+    font-family:monospace;
+    font-size:19px;
+    cursor:pointer;
+}
+
+#start:hover{
+    background:#8b3dff;
+    box-shadow:0 0 20px #8b3dff;
+}
+
+/* ================= JUEGO ================= */
+
+#game{
+    position:relative;
+    overflow:hidden;
+}
+
+#game.light{
+    background:#65a9dc;
+}
+
+#game.dark{
+    background:#08000e;
+}
+
+#world{
+    position:absolute;
+    width:2200px;
+    height:1500px;
+}
+
+/* LIGHT WORLD */
+
+#game.light #world{
+    background:
+        radial-gradient(circle at 20% 20%,#a9e6ff 0 80px,transparent 81px),
+        #4c9c52;
+}
+
+/* DARK WORLD */
+
+#game.dark #world{
+    background:
+        radial-gradient(circle at 30% 30%,#461071 0 100px,transparent 101px),
+        radial-gradient(circle at 75% 60%,#211052 0 130px,transparent 131px),
+        #11001e;
+}
+
+/* DECORACIÓN */
+
+.tree{
+    position:absolute;
+    width:70px;
+    height:95px;
+    border:5px solid #17391c;
+    border-radius:50%;
+    background:#23783a;
+}
+
+.rock{
+    position:absolute;
+    width:70px;
+    height:40px;
+    background:#777;
+    border:4px solid #333;
+    border-radius:50%;
+}
+
+.building{
+    position:absolute;
+    width:250px;
+    height:160px;
+    background:#d8d8d8;
+    border:8px solid #333;
+}
+
+.portal{
+    position:absolute;
+    width:100px;
+    height:140px;
+    border:8px solid #d29aff;
+    border-radius:50%;
+    background:radial-gradient(circle,#fff,#b000ff 20%,#190024 70%);
+    box-shadow:0 0 35px #b000ff;
+    cursor:pointer;
+}
+
+/* ================= JUGADOR ================= */
+
+#player{
+    position:absolute;
+    width:48px;
+    height:65px;
+    border:4px solid #111;
+    z-index:50;
+}
+
+#playerName{
+    position:absolute;
+    top:-25px;
+    width:150px;
+    left:-55px;
+    text-align:center;
+    color:white;
+    text-shadow:2px 2px #000;
+}
+
+/* ================= HUD ================= */
+
+#hud{
+    position:fixed;
+    z-index:100;
+    top:15px;
+    left:15px;
+    padding:12px 18px;
+    background:rgba(0,0,0,.8);
+    border:2px solid #b86cff;
+}
+
+#worldName{
+    color:#d29aff;
+}
+
+#changeWorld{
+    position:fixed;
+    z-index:100;
+    top:15px;
+    right:15px;
+    margin:0;
+    padding:10px 15px;
+    font-family:monospace;
+    color:white;
+    background:#5300a8;
+    border:2px solid #b86cff;
+}
+
+#controls{
+    position:fixed;
+    z-index:100;
+    bottom:15px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:10px 15px;
+    background:rgba(0,0,0,.75);
+    border:1px solid #555;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= SELECTOR ================= -->
+
+<section id="selector" class="screen active">
+
+<div class="selector-box">
+
+<h1>🌑 DARK WORLD</h1>
+
+<p class="subtitle">
+ELIGE EL PERSONAJE QUE QUIERES CONTROLAR
+</p>
+
+<h2 class="category">👤 LIGHTNERS</h2>
+
+<div class="characters">
+
+<div class="character selected" data-class="kris" data-name="Kris">
+<div class="face kris"></div>
+<div class="character-name">Kris</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="susie" data-name="Susie">
+<div class="face susie"></div>
+<div class="character-name">Susie</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="ralsei" data-name="Ralsei">
+<div class="face ralsei"></div>
+<div class="character-name">Ralsei</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="noelle" data-name="Noelle">
+<div class="face noelle"></div>
+<div class="character-name">Noelle</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="berdly" data-name="Berdly">
+<div class="face berdly"></div>
+<div class="character-name">Berdly</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="catti" data-name="Catti">
+<div class="face catti"></div>
+<div class="character-name">Catti</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="jockington" data-name="Jockington">
+<div class="face jockington"></div>
+<div class="character-name">Jockington</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="temmie" data-name="Temmie">
+<div class="face temmie"></div>
+<div class="character-name">Temmie</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="toriel" data-name="Toriel">
+<div class="face toriel"></div>
+<div class="character-name">Toriel</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="asgore" data-name="Asgore">
+<div class="face asgore"></div>
+<div class="character-name">Asgore</div>
+<div class="character-type">Lightner</div>
+</div>
+
+<div class="character" data-class="asriel" data-name="Asriel">
+<div class="face asriel"></div>
+<div class="character-name">Asriel</div>
+<div class="character-type">Lightner</div>
+</div>
+
+</div>
+
+
+<h2 class="category">🌑 DARKNERS</h2>
+
+<div class="characters">
+
+<div class="character" data-class="lancer" data-name="Lancer">
+<div class="face lancer"></div>
+<div class="character-name">Lancer</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="seam" data-name="Seam">
+<div class="face seam"></div>
+<div class="character-name">Seam</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="jevil" data-name="Jevil">
+<div class="face jevil"></div>
+<div class="character-name">Jevil</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="king" data-name="King">
+<div class="face king"></div>
+<div class="character-name">King</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="queen" data-name="Queen">
+<div class="face queen"></div>
+<div class="character-name">Queen</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="spamton" data-name="Spamton">
+<div class="face spamton"></div>
+<div class="character-name">Spamton</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="rouxls" data-name="Rouxls Kaard">
+<div class="face rouxls"></div>
+<div class="character-name">Rouxls Kaard</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="swatch" data-name="Swatch">
+<div class="face swatch"></div>
+<div class="character-name">Swatch</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="tasque" data-name="Tasque Manager">
+<div class="face tasque"></div>
+<div class="character-name">Tasque Manager</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="sweet" data-name="Sweet">
+<div class="face sweet"></div>
+<div class="character-name">Sweet</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="capn" data-name="Cap'n">
+<div class="face capn"></div>
+<div class="character-name">Cap'n</div>
+<div class="character-type">Darkner</div>
+</div>
+
+<div class="character" data-class="cakes" data-name="Cakes">
+<div class="face cakes"></div>
+<div class="character-name">Cakes</div>
+<div class="character-type">Darkner</div>
+</div>
+
+</div>
+
+<button id="start">
+▶ ENTRAR AL MUNDO
+</button>
+
+</div>
+</section>
+
+
+<!-- ================= JUEGO ================= -->
+
+<section id="game" class="screen light">
+
+<div id="hud">
+🌎 <span id="worldName">LIGHT WORLD</span>
+<br>
+👤 <span id="selectedName">Kris</span>
+</div>
+
+<button id="changeWorld">
+🌑 DARK WORLD
+</button>
+
+<div id="controls">
+WASD / FLECHAS — MOVERSE
+</div>
+
+<div id="world">
+
+<div class="tree" style="left:100px;top:150px"></div>
+<div class="tree" style="left:400px;top:400px"></div>
+<div class="tree" style="left:850px;top:180px"></div>
+<div class="tree" style="left:1200px;top:550px"></div>
+<div class="tree" style="left:1700px;top:300px"></div>
+
+<div class="rock" style="left:300px;top:650px"></div>
+<div class="rock" style="left:700px;top:800px"></div>
+<div class="rock" style="left:1300px;top:400px"></div>
+
+<div class="building" style="left:750px;top:250px"></div>
+
+<div
+class="portal"
+id="portal"
+style="left:1800px;top:1100px">
+</div>
+
+<div id="player" class="kris"
+style="left:500px;top:500px">
+
+<div id="playerName">
+Kris
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<script>
+
+/* ================= ESTADO ================= */
+
+let selectedClass = "kris";
+let selectedName = "Kris";
+
+let x = 500;
+let y = 500;
+
+let speed = 5;
+
+let keys = {};
+
+let world = "light";
+
+
+/* ================= SELECTOR ================= */
+
+const characterCards =
+document.querySelectorAll(".character");
+
+characterCards.forEach(card => {
+
+    card.addEventListener("click", () => {
+
+        characterCards.forEach(c =>
+            c.classList.remove("selected")
+        );
+
+        card.classList.add("selected");
+
+        selectedClass =
+            card.dataset.class;
+
+        selectedName =
+            card.dataset.name;
+
+    });
+
